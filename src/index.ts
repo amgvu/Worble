@@ -2,15 +2,54 @@ import { Client, GatewayIntentBits, Collection } from "discord.js";
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
+import express from "express";
+import apiRoutes from "./routes/api";
 import { ExtendedClient } from "./types/Client";
+import net from 'net';
 
 dotenv.config();
 
-const client: ExtendedClient = new Client({
+const findAvailablePort = async (startPort: number, maxAttempts = 10): Promise<number> => {
+  const isPortAvailable = (port: number): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const server = net.createServer()
+        .once('error', () => resolve(false))
+        .once('listening', () => {
+          server.close();
+          resolve(true);
+        })
+        .listen(port);
+    });
+  };
+
+  for (let port = startPort; port < startPort + maxAttempts; port++) {
+    if (await isPortAvailable(port)) {
+      return port;
+    }
+  }
+  throw new Error('No available ports found');
+};
+
+export const client: ExtendedClient = new Client({
   intents: [GatewayIntentBits.Guilds],
 }) as ExtendedClient;
 
 client.commands = new Collection();
+
+const app = express();
+app.use(express.json());
+
+app.use("/api", apiRoutes);
+
+(async () => {
+  try {
+    const port = await findAvailablePort(3000);
+    app.listen(port, () => console.log(`Server running on http://localhost:${port}`));
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+})();
 
 const commandsPath = path.join(__dirname, "commands");
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith(".ts"));
