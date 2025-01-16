@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 import express from "express";
-import apiRoutes from "./routes/api";
+import routes from "./routes/index";
 import { ExtendedClient } from "./types/Client";
 import net from 'net';
 
@@ -42,7 +42,7 @@ client.commands = new Collection();
 const app = express();
 app.use(express.json());
 
-app.use("/api", apiRoutes);
+app.use("/", routes);
 
 (async () => {
   try {
