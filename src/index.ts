@@ -31,7 +31,10 @@ const findAvailablePort = async (startPort: number, maxAttempts = 10): Promise<n
 };
 
 export const client: ExtendedClient = new Client({
-  intents: [GatewayIntentBits.Guilds],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers
+  ],
 }) as ExtendedClient;
 
 client.commands = new Collection();
