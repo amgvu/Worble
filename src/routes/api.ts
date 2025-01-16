@@ -3,7 +3,7 @@ import { client } from "../index";
 
 const router = express.Router();
 
-// Rename endpoint
+// Nickname renaming endpoint for dashboard ?
 router.post("/rename", async (req, res): Promise<any> => {
   const { guildId, userId, nickname } = req.body;
 

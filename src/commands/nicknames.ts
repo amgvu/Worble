@@ -1,8 +1,17 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_URL = process.env.SUPABASE_URL
+const SUPABASE_KEY = process.env.SUPABASE_KEY
+
+const supabase = createClient(
+    SUPABASE_URL || '',
+    SUPABASE_KEY || ''
+);
 
 export const data = new SlashCommandBuilder()
   .setName("nicknames")
-  .setDescription("Shows the current nicknames of all server members.");
+  .setDescription("Shows the current nicknames of all server members and stores them in the database.");
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   const guild = interaction.guild;
@@ -17,21 +26,40 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     const members = await guild.members.fetch();
 
- const formattedNicknames = members.map((member) => {
+    const nicknameData = members.map((member) => {
       const nickname = member.nickname || member.user.username;
-      const displayName = member.user.globalName || member.user.tag;
-      return `• **${displayName}** → \`${nickname}\``;
-    }).join("\n");
+      return {
+        guild_id: guild.id,
+        user_id: member.id,
+        user_tag: member.user.tag,
+        nickname: nickname,
+        updated_at: new Date().toISOString(),
+      };
+    });
 
-    if (formattedNicknames.length > 2000) {
-      await interaction.editReply("The list of nicknames is too long to display.");
+    const { error } = await supabase
+      .from("nicknames")
+      .upsert(nicknameData, { onConflict: "guild_id,user_id" });
+
+    if (error) {
+      console.error("Error storing nicknames in database:", error);
+      await interaction.editReply("An error occurred while saving nicknames to the database.");
       return;
     }
 
-    await interaction.editReply(`**Server Nicknames:**\n${formattedNicknames}`);
+    const formattedNicknames = nicknameData
+      .map((data) => `• **${data.user_tag}** → \`${data.nickname}\``)
+      .join("\n");
+
+    if (formattedNicknames.length > 2000) {
+      await interaction.editReply("The list of nicknames is too long to display, but they have been saved to the database.");
+      return;
+    }
+
+    await interaction.editReply(`**Server Nicknames (Saved to DB):**\n${formattedNicknames}`);
   } catch (error) {
-    console.error("Error fetching members:", error);
-    await interaction.editReply("An error occurred while fetching member nicknames.");
+    console.error("Error fetching or storing members:", error);
+    await interaction.editReply("An error occurred while fetching or saving member nicknames.");
   }
 }
 
