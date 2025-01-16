@@ -17,9 +17,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     const members = await guild.members.fetch();
 
-    const formattedNicknames = members.map((member) => {
+ const formattedNicknames = members.map((member) => {
       const nickname = member.nickname || member.user.username;
-      return `${member.user.globalName || member.user.tag}: ${nickname}`;
+      const displayName = member.user.globalName || member.user.tag;
+      return `• **${displayName}** → \`${nickname}\``;
     }).join("\n");
 
     if (formattedNicknames.length > 2000) {
@@ -27,8 +28,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       return;
     }
 
-    // Sends the formatted list of nicknames
-    await interaction.editReply(`Current Nicknames:\n${formattedNicknames}`);
+    await interaction.editReply(`**Server Nicknames:**\n${formattedNicknames}`);
   } catch (error) {
     console.error("Error fetching members:", error);
     await interaction.editReply("An error occurred while fetching member nicknames.");
