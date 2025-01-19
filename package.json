@@ -14,11 +14,13 @@
   "description": "",
   "dependencies": {
     "@supabase/supabase-js": "^2.47.14",
+    "cors": "^2.8.5",
     "discord.js": "^14.17.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.2"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.6",
     "@types/ws": "^8.5.13",

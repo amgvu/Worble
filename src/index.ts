@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 import express from "express";
-import routes from "./routes/index";
+import routes from "./api/index";
 import { ExtendedClient } from "./types/Client";
 import net from 'net';
 
