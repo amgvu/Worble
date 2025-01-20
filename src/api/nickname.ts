@@ -1,13 +1,13 @@
 import express from "express";
-import dotenv from "dotenv";
-import cors from "cors";
 import { createClient } from "@supabase/supabase-js";
 import { client } from "../index";
+import dotenv from "dotenv";
+import cors from "cors";
 
 const router = express.Router();
 
 router.use(cors({
-  origin: process.env.DASHBOARD_URL || 'http://localhost:3000',
+  origin: process.env.DASHBOARD_URL || 'http://localhost:3001',
   methods: ['POST', 'GET'],
   credentials: true
 }));
@@ -39,7 +39,7 @@ router.post('/nickname', async (req, res): Promise<any> => {
     }
 
     await member.setNickname(nickname);
-    
+
     await supabase
       .from('nicknames')
       .upsert({ 
