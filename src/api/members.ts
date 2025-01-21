@@ -20,11 +20,13 @@ router.get('/members/:guild_id', async (req, res): Promise<any> => {
     }
 
     const members = await guild.members.fetch();
-    const memberList = members.map((member) => ({
-      user_id: member.user.id,
-      username: member.user.username,
-      nickname: member.nickname || member.user.username,
-    }));
+    const memberList = members
+      .filter((member) => member.user.id !== guild.ownerId) // Exclude the server owner
+      .map((member) => ({
+        user_id: member.user.id,
+        username: member.user.username,
+        nickname: member.nickname || member.user.username,
+      }));
 
     return res.status(200).json(memberList);
   } catch (error) {
