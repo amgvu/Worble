@@ -20,7 +20,7 @@ const supabase = createClient(
   SUPABASE_KEY || ""
 );
 
-router.post('/nickname', async (req, res): Promise<any> => {
+router.post('/changeNickname', async (req, res): Promise<any> => {
   try {
     const { guild_id, user_id, nickname } = req.body;
 
