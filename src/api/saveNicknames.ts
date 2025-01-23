@@ -49,9 +49,7 @@ router.post("/save-nicknames", async (req, res): Promise<any> => {
     nicknames.forEach((n: { userId: string; nickname: string; userTag?: string }) => {
       const member = members.get(n.userId);
       if (member) {
-        const actualNickname = member.nickname || member.user.username;
-        const discriminator = member.user.discriminator === '0' ? '0000' : member.user.discriminator;
-        const userTag = n.userTag || `${member.user.username}#${discriminator}`;
+        const userTag = n.userTag || `${member.user.username}`;
 
         if (!userTag) {
           console.error(`userTag is missing for user ${n.userId}`);
