@@ -36,6 +36,7 @@ router.post("/save-nicknames", async (req, res): Promise<any> => {
     }
 
     const members = await guild.members.fetch();
+    console.log('Fetched members:', members);
 
     const validNicknames: {
       guild_id: string;
@@ -49,32 +50,44 @@ router.post("/save-nicknames", async (req, res): Promise<any> => {
       const member = members.get(n.userId);
       if (member) {
         const actualNickname = member.nickname || member.user.username;
-        if (actualNickname === n.nickname) {
-          const userTag = n.userTag || `${member.user.username}#${member.user.discriminator}`;
+        const discriminator = member.user.discriminator === '0' ? '0000' : member.user.discriminator;
+        const userTag = n.userTag || `${member.user.username}#${discriminator}`;
 
-          if (!userTag) {
-            console.error(`userTag is missing for user ${n.userId}`);
-            return;
-          }
-
-          validNicknames.push({
-            guild_id: guildId,
-            user_id: n.userId,
-            user_tag: userTag,
-            nickname: n.nickname,
-            updated_at: new Date().toISOString(),
-          });
+        if (!userTag) {
+          console.error(`userTag is missing for user ${n.userId}`);
+          return;
         }
+
+        validNicknames.push({
+          guild_id: guildId,
+          user_id: n.userId,
+          user_tag: userTag,
+          nickname: n.nickname,
+          updated_at: new Date().toISOString(),
+        });
+      } else {
+        console.error(`Member not found for user ${n.userId}`);
       }
     });
+
+    console.log('Valid nicknames:', validNicknames);
 
     if (validNicknames.length === 0) {
       return res.status(400).json({ error: "No valid nicknames found to save." });
     }
 
+    for (const nickname of validNicknames) {
+      await supabase
+        .from("nicknames")
+        .update({ is_active: false })
+        .eq("guild_id", nickname.guild_id)
+        .eq("user_id", nickname.user_id)
+        .eq("is_active", true);
+    }
+
     const { error } = await supabase
       .from("nicknames")
-      .upsert(validNicknames, { onConflict: "guild_id,user_id" });
+      .insert(validNicknames);
 
     if (error) {
       console.error("Error saving nicknames:", error);
@@ -88,5 +101,5 @@ router.post("/save-nicknames", async (req, res): Promise<any> => {
   }
 });
 
-  export default router
+export default router;
   
