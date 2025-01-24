@@ -44,6 +44,7 @@ router.post("/save-nicknames", async (req, res): Promise<any> => {
       user_tag: string;
       nickname: string;
       updated_at: string;
+      is_active: boolean;
     }[] = [];
 
     nicknames.forEach((n: { userId: string; nickname: string; userTag?: string }) => {
@@ -62,6 +63,7 @@ router.post("/save-nicknames", async (req, res): Promise<any> => {
           user_tag: userTag,
           nickname: n.nickname,
           updated_at: new Date().toISOString(),
+          is_active: true
         });
       } else {
         console.error(`Member not found for user ${n.userId}`);
@@ -74,25 +76,55 @@ router.post("/save-nicknames", async (req, res): Promise<any> => {
       return res.status(400).json({ error: "No valid nicknames found to save." });
     }
 
-    for (const nickname of validNicknames) {
+    const upsertResults = await Promise.all(validNicknames.map(async (nickname) => {
+      const { data: existingNicknames, error: fetchError } = await supabase
+        .from("nicknames")
+        .select("*")
+        .eq("guild_id", nickname.guild_id)
+        .eq("user_id", nickname.user_id)
+        .eq("nickname", nickname.nickname)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error("Error checking existing nickname:", fetchError);
+        return null;
+      }
+
+      if (existingNicknames) {
+        return existingNicknames;
+      }
+
       await supabase
         .from("nicknames")
         .update({ is_active: false })
         .eq("guild_id", nickname.guild_id)
         .eq("user_id", nickname.user_id)
         .eq("is_active", true);
+
+      const { data, error } = await supabase
+        .from("nicknames")
+        .insert(nickname)
+        .select();
+
+      if (error) {
+        console.error("Error saving nickname:", error);
+        return null;
+      }
+
+      return data[0];
+    }));
+
+    const savedNicknames = upsertResults.filter(result => result !== null);
+
+    if (savedNicknames.length === 0) {
+      return res.status(500).json({ error: "Failed to save any nicknames." });
     }
 
-    const { error } = await supabase
-      .from("nicknames")
-      .insert(validNicknames);
-
-    if (error) {
-      console.error("Error saving nicknames:", error);
-      return res.status(500).json({ error: "Failed to save nicknames to the database." });
-    }
-
-    res.status(200).json({ message: "Nicknames saved successfully.", savedNicknames: validNicknames });
+    res.status(200).json({ 
+      message: "Nicknames processed successfully.", 
+      savedNicknames: savedNicknames 
+    });
   } catch (error) {
     console.error("Error saving nicknames:", error);
     res.status(500).json({ error: "An error occurred while saving nicknames." });
