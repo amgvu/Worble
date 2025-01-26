@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Collection } from "discord.js";
+import { Client, GatewayIntentBits, Collection, ActivityType } from "discord.js";
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
@@ -64,7 +64,17 @@ for (const file of commandFiles) {
 
 client.once("ready", () => {
   console.log(`Logged in as ${client.user?.tag}!`);
+  
+  client.user?.setActivity({
+    name: "port 3000 🎧😃",
+    type: ActivityType.Listening,
+  });
+
+  console.log(`Bot status set to: ${client.user?.presence.activities[0]?.name}`);
 });
+
+console.log(`Bot status set to: ${client.user?.presence.activities[1].name}`);
+
 
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;

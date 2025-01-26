@@ -26,10 +26,13 @@ router.get('/members/:guild_id', async (req, res): Promise<any> => {
       .map((member) => ({
         user_id: member.user.id,
         username: member.user.username,
-        nickname: member.nickname || member.user.globalName,
-        globalName: member.user.globalName,
+        nickname: member.nickname,
+        globalName: member.user.globalName || member.user.username,
         avatar_url: member.user.avatarURL({ extension: 'png', size: 256 }) || member.user.defaultAvatarURL,
       }));
+
+    const globalNames = memberList.map((member) => member.globalName);
+    console.log('Fetched users\' globalNames:', globalNames);
 
     return res.status(200).json(memberList);
   } catch (error) {
