@@ -20,12 +20,13 @@ router.get('/members/:guild_id', async (req, res): Promise<any> => {
     }
 
     const members = await guild.members.fetch();
+
     const memberList = members
       .filter((member) => member.user.id !== guild.ownerId)
       .map((member) => ({
         user_id: member.user.id,
         username: member.user.username,
-        nickname: member.nickname || member.user.username,
+        nickname: member.nickname || member.displayName,
         avatar_url: member.user.avatarURL({ extension: 'png', size: 256 }) || member.user.defaultAvatarURL,
       }));
 
