@@ -35,10 +35,13 @@ router.get('/members/:guild_id', async (req, res): Promise<any> => {
             role_id: role.id,
             name: role.name,
             position: role.position,
-            color: role.color
+            color: role.color.toString(16)
           }))
           .sort((a, b) => b.position - a.position)
       }));
+
+      const roleColors = memberList.map((member) => member.roles)
+      console.log(roleColors)
 
     const globalNames = memberList.map((member) => member.globalName);
     console.log('Fetched users\' globalNames:', globalNames);
