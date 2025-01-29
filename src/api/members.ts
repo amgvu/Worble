@@ -29,6 +29,15 @@ router.get('/members/:guild_id', async (req, res): Promise<any> => {
         nickname: member.nickname,
         globalName: member.user.globalName || member.user.username,
         avatar_url: member.user.avatarURL({ extension: 'png', size: 256 }) || member.user.defaultAvatarURL,
+        roles: member.roles.cache
+          .filter(role => role.id !== guild.id)
+          .map(role => ({
+            role_id: role.id,
+            name: role.name,
+            position: role.position,
+            color: role.color
+          }))
+          .sort((a, b) => b.position - a.position)
       }));
 
     const globalNames = memberList.map((member) => member.globalName);
