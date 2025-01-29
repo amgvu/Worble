@@ -64,11 +64,8 @@ for (const file of commandFiles) {
 
 client.once("ready", () => {
   console.log(`Logged in as ${client.user?.tag}!`);
-  
-  client.user?.setActivity({
-    name: "port 3000 🎧😃",
-    type: ActivityType.Listening,
-  });
+
+  client.user?.setStatus('invisible');
 
   console.log(`Bot status set to: ${client.user?.presence.activities[0]?.name}`);
 });
