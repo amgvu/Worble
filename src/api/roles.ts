@@ -23,11 +23,10 @@ router.get("/roles/:guild_id", async (req, res): Promise<any> => {
 
     const roles = guild.roles.cache.sort((a, b) => b.position - a.position);
 
-    const roleList = roles.map((role, index) => ({
+    const roleList = roles.map((role) => ({
       role_id: role.id,
       name: role.name,
       position: role.position,
-      hierarchyIndex: index,
       color: role.color,
       isHoisted: role.hoist,
       isMentionable: role.mentionable,
