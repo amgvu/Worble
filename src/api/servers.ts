@@ -15,8 +15,8 @@ router.use(
 
 router.post("/servers", async (req, res): Promise<any> => {
   try {
+    console.log("API '/servers' endpoint called");
     const { accessToken, userId } = req.body;
-    console.log("Received request with:", { userId, hasToken: !!accessToken });
 
     if (!accessToken || !userId) {
       return res.status(400).json({ error: "Missing accessToken or userId" });

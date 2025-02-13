@@ -44,9 +44,6 @@ router.get("/members/:guild_id", async (req, res): Promise<any> => {
           .sort((a, b) => b.position - a.position),
       }));
 
-    const roleColors = memberList.map((member) => member.roles);
-    console.log(roleColors);
-
     return res.status(200).json(memberList);
   } catch (error) {
     console.error("Error fetching members:", error);
