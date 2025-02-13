@@ -4,19 +4,21 @@ import cors from "cors";
 
 const router = express.Router();
 
-router.use(cors({
-  origin: process.env.DASHBOARD_URL || 'http://localhost:3001',
-  methods: ['POST', 'GET'],
-  credentials: true
-}));
+router.use(
+  cors({
+    origin: process.env.DASHBOARD_URL || "http://localhost:3001",
+    methods: ["POST", "GET"],
+    credentials: true,
+  })
+);
 
-router.get('/members/:guild_id', async (req, res): Promise<any> => {
+router.get("/members/:guild_id", async (req, res): Promise<any> => {
   try {
     const { guild_id } = req.params;
 
     const guild = client.guilds.cache.get(guild_id);
     if (!guild) {
-      return res.status(404).json({ error: 'Guild not found' });
+      return res.status(404).json({ error: "Guild not found" });
     }
 
     const members = await guild.members.fetch();
@@ -28,28 +30,27 @@ router.get('/members/:guild_id', async (req, res): Promise<any> => {
         username: member.user.username,
         nickname: member.nickname,
         globalName: member.user.globalName || member.user.username,
-        avatar_url: member.user.avatarURL({ extension: 'png', size: 256 }) || member.user.defaultAvatarURL,
+        avatar_url:
+          member.user.avatarURL({ extension: "png", size: 256 }) ||
+          member.user.defaultAvatarURL,
         roles: member.roles.cache
-          .filter(role => role.id !== guild.id)
-          .map(role => ({
+          .filter((role) => role.id !== guild.id)
+          .map((role) => ({
             role_id: role.id,
             name: role.name,
             position: role.position,
-            color: role.color.toString(16)
+            color: role.color.toString(16),
           }))
-          .sort((a, b) => b.position - a.position)
+          .sort((a, b) => b.position - a.position),
       }));
 
-      const roleColors = memberList.map((member) => member.roles)
-      console.log(roleColors)
-
-    const globalNames = memberList.map((member) => member.globalName);
-    console.log('Fetched users\' globalNames:', globalNames);
+    const roleColors = memberList.map((member) => member.roles);
+    console.log(roleColors);
 
     return res.status(200).json(memberList);
   } catch (error) {
-    console.error('Error fetching members:', error);
-    return res.status(500).json({ error: 'Failed to fetch members' });
+    console.error("Error fetching members:", error);
+    return res.status(500).json({ error: "Failed to fetch members" });
   }
 });
 
