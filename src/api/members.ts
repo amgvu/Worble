@@ -21,10 +21,20 @@ router.get("/members/:guild_id", async (req, res): Promise<any> => {
       return res.status(404).json({ error: "Guild not found" });
     }
 
+    const botMember = guild.members.me;
+    if (!botMember) {
+      return res.status(500).json({ error: "Bot is not in the guild" });
+    }
+
+    const botHighestRole = botMember.roles.highest;
     const members = await guild.members.fetch();
 
     const memberList = members
-      .filter((member) => member.user.id !== guild.ownerId)
+      .filter(
+        (member) =>
+          member.user.id !== guild.ownerId &&
+          member.roles.highest.position < botHighestRole.position
+      )
       .map((member) => ({
         user_id: member.user.id,
         username: member.user.username,
