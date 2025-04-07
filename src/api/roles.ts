@@ -6,8 +6,8 @@ const router = express.Router();
 
 router.use(
   cors({
-    origin: process.env.DASHBOARD_URL || "http://localhost:3001",
-    methods: ["POST", "GET"],
+    origin: process.env.DASHBOARD_URL || "https://arclify.vercel.app",
+    methods: ["POST", "GET", "OPTIONS"],
     credentials: true,
   })
 );
@@ -33,7 +33,6 @@ router.get("/roles/:guild_id", async (req, res): Promise<any> => {
     }));
 
     console.log("Fetched roles:", roleList);
-    
 
     return res.status(200).json(roleList);
   } catch (error) {
