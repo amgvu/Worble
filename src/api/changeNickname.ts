@@ -11,7 +11,7 @@ router.use(
     origin:
       process.env.DASHBOARD_URL ||
       "https://afternoon-temple-26946-e99dc6cf9cc7.herokuapp.com/https://arclify.vercel.app",
-    methods: ["POST", "GET", "OPTIONS"],
+    methods: ["POST", "GET"],
     credentials: true,
   })
 );
