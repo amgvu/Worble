@@ -6,6 +6,7 @@ import express from "express";
 import routes from "./api/index";
 import { ExtendedClient } from "./types/Client";
 import net from "net";
+import cors from "cors";
 
 dotenv.config();
 
@@ -42,6 +43,13 @@ client.commands = new Collection();
 
 const app = express();
 app.use(express.json());
+app.use(
+  cors({
+    origin: process.env.DASHBOARD_URL || "https://arclify.vercel.app",
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
 
 app.use("/", routes);
 
