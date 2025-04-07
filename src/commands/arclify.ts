@@ -1,10 +1,10 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 
 export const data = new SlashCommandBuilder()
-  .setName("dashboard")
+  .setName("arclify")
   .setDescription("Provides the link to the app");
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-  const dashboardURL = "http://localhost:3001/dashboard";
-  await interaction.reply(`Access ArcForge here: ${dashboardURL}`);
+  const dashboardURL = "https://arclify.vercel.app";
+  await interaction.reply(`Access Arclify here: ${dashboardURL}`);
 }
