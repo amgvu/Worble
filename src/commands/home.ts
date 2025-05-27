@@ -5,6 +5,6 @@ export const data = new SlashCommandBuilder()
   .setDescription("Provides the link to the app");
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-  const dashboardURL = "http://localhost:3001/dashboard";
-  await interaction.reply(`Access ArcForge here: ${dashboardURL}`);
+  const dashboardURL = "https://arclify.vercel.app/";
+  await interaction.reply(`Arclify Home Page: ${dashboardURL}`);
 }
