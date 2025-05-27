@@ -8,25 +8,26 @@ dotenv.config();
 
 const router = express.Router();
 
-router.use(cors({
-  origin: process.env.DASHBOARD_URL || 'http://localhost:3001',
-  methods: ['POST', 'GET'],
-  credentials: true
-}));
+router.use(
+  cors({
+    origin: process.env.DASHBOARD_URL || "https://arclify.vercel.app",
+    methods: ["POST", "GET"],
+    credentials: true,
+  })
+);
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
-const supabase = createClient(
-  SUPABASE_URL || "",
-  SUPABASE_KEY || ""
-);
+const supabase = createClient(SUPABASE_URL || "", SUPABASE_KEY || "");
 
 router.post("/save-nicknames", async (req, res): Promise<any> => {
   const { guildId, nicknames } = req.body;
 
   if (!guildId || !nicknames) {
-    return res.status(400).json({ error: "guildId and nicknames are required." });
+    return res
+      .status(400)
+      .json({ error: "guildId and nicknames are required." });
   }
 
   try {
@@ -36,7 +37,7 @@ router.post("/save-nicknames", async (req, res): Promise<any> => {
     }
 
     const members = await guild.members.fetch();
-    console.log('Fetched members:', members);
+    console.log("Fetched members:", members);
 
     const validNicknames: {
       guild_id: string;
@@ -47,89 +48,96 @@ router.post("/save-nicknames", async (req, res): Promise<any> => {
       is_active: boolean;
     }[] = [];
 
-    nicknames.forEach((n: { userId: string; nickname: string; userTag?: string }) => {
-      const member = members.get(n.userId);
-      if (member) {
-        const userTag = n.userTag || `${member.user.username}`;
+    nicknames.forEach(
+      (n: { userId: string; nickname: string; userTag?: string }) => {
+        const member = members.get(n.userId);
+        if (member) {
+          const userTag = n.userTag || `${member.user.username}`;
 
-        if (!userTag) {
-          console.error(`userTag is missing for user ${n.userId}`);
-          return;
+          if (!userTag) {
+            console.error(`userTag is missing for user ${n.userId}`);
+            return;
+          }
+
+          validNicknames.push({
+            guild_id: guildId,
+            user_id: n.userId,
+            user_tag: userTag,
+            nickname: n.nickname,
+            updated_at: new Date().toISOString(),
+            is_active: true,
+          });
+        } else {
+          console.error(`Member not found for user ${n.userId}`);
         }
-
-        validNicknames.push({
-          guild_id: guildId,
-          user_id: n.userId,
-          user_tag: userTag,
-          nickname: n.nickname,
-          updated_at: new Date().toISOString(),
-          is_active: true
-        });
-      } else {
-        console.error(`Member not found for user ${n.userId}`);
       }
-    });
+    );
 
-    console.log('Valid nicknames:', validNicknames);
+    console.log("Valid nicknames:", validNicknames);
 
     if (validNicknames.length === 0) {
-      return res.status(400).json({ error: "No valid nicknames found to save." });
+      return res
+        .status(400)
+        .json({ error: "No valid nicknames found to save." });
     }
 
-    const upsertResults = await Promise.all(validNicknames.map(async (nickname) => {
-      const { data: existingNicknames, error: fetchError } = await supabase
-        .from("nicknames")
-        .select("*")
-        .eq("guild_id", nickname.guild_id)
-        .eq("user_id", nickname.user_id)
-        .eq("nickname", nickname.nickname)
-        .eq("is_active", true)
-        .maybeSingle();
+    const upsertResults = await Promise.all(
+      validNicknames.map(async (nickname) => {
+        const { data: existingNicknames, error: fetchError } = await supabase
+          .from("nicknames")
+          .select("*")
+          .eq("guild_id", nickname.guild_id)
+          .eq("user_id", nickname.user_id)
+          .eq("nickname", nickname.nickname)
+          .eq("is_active", true)
+          .maybeSingle();
 
-      if (fetchError) {
-        console.error("Error checking existing nickname:", fetchError);
-        return null;
-      }
+        if (fetchError) {
+          console.error("Error checking existing nickname:", fetchError);
+          return null;
+        }
 
-      if (existingNicknames) {
-        return existingNicknames;
-      }
+        if (existingNicknames) {
+          return existingNicknames;
+        }
 
-      await supabase
-        .from("nicknames")
-        .update({ is_active: false })
-        .eq("guild_id", nickname.guild_id)
-        .eq("user_id", nickname.user_id)
-        .eq("is_active", true);
+        await supabase
+          .from("nicknames")
+          .update({ is_active: false })
+          .eq("guild_id", nickname.guild_id)
+          .eq("user_id", nickname.user_id)
+          .eq("is_active", true);
 
-      const { data, error } = await supabase
-        .from("nicknames")
-        .insert(nickname)
-        .select();
+        const { data, error } = await supabase
+          .from("nicknames")
+          .insert(nickname)
+          .select();
 
-      if (error) {
-        console.error("Error saving nickname:", error);
-        return null;
-      }
+        if (error) {
+          console.error("Error saving nickname:", error);
+          return null;
+        }
 
-      return data[0];
-    }));
+        return data[0];
+      })
+    );
 
-    const savedNicknames = upsertResults.filter(result => result !== null);
+    const savedNicknames = upsertResults.filter((result) => result !== null);
 
     if (savedNicknames.length === 0) {
       return res.status(500).json({ error: "Failed to save any nicknames." });
     }
 
-    res.status(200).json({ 
-      message: "Nicknames processed successfully.", 
-      savedNicknames: savedNicknames 
+    res.status(200).json({
+      message: "Nicknames processed successfully.",
+      savedNicknames: savedNicknames,
     });
   } catch (error) {
     console.error("Error saving nicknames:", error);
-    res.status(500).json({ error: "An error occurred while saving nicknames." });
+    res
+      .status(500)
+      .json({ error: "An error occurred while saving nicknames." });
   }
 });
 
 export default router;
-  

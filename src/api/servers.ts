@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.use(
   cors({
-    origin: process.env.DASHBOARD_URL || "http://localhost:3001",
+    origin: process.env.DASHBOARD_URL || "https://arclify.vercel.app",
     methods: ["POST", "GET"],
     credentials: true,
   })
@@ -22,22 +22,33 @@ router.post("/servers", async (req, res): Promise<any> => {
       return res.status(400).json({ error: "Missing accessToken or userId" });
     }
 
-    const userServersResponse = await fetch(
-      "https://discord.com/api/v10/users/@me/guilds",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    const userServers = await new Promise<any[]>(async (resolve, reject) => {
+      setTimeout(async () => {
+        try {
+          const userServersResponse = await fetch(
+            "https://discord.com/api/v10/users/@me/guilds",
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
 
-    if (!userServersResponse.ok) {
-      const errorData = await userServersResponse.text();
-      console.error("Discord API error:", errorData);
-      throw new Error("Failed to fetch user servers");
-    }
+          if (!userServersResponse.ok) {
+            const errorData = await userServersResponse.text();
+            console.error("Discord API error:", errorData);
+            reject(new Error("Failed to fetch user servers"));
+            return;
+          }
 
-    const userServers = await userServersResponse.json();
+          const data = await userServersResponse.json();
+          resolve(data);
+        } catch (error) {
+          reject(error);
+        }
+      }, 1000);
+    });
+
     console.log("User servers count:", userServers.length);
 
     const botServers = await client.guilds.fetch();
