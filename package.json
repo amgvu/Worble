@@ -15,9 +15,11 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.47.14",
     "cors": "^2.8.5",
+    "discord-api-types": "^0.38.12",
     "discord.js": "^14.17.3",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

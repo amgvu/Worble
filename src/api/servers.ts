@@ -27,7 +27,6 @@ function getDiscordGuildIconURL(
 router.post("/servers", async (req, res): Promise<any> => {
   try {
     const { accessToken, userId } = req.body;
-
     if (!accessToken || !userId) {
       return res.status(400).json({ error: "Missing accessToken or userId" });
     }
@@ -58,7 +57,6 @@ router.post("/servers", async (req, res): Promise<any> => {
     });
 
     const botServers = await client.guilds.fetch();
-
     const mutualServers = [];
 
     for (const userServer of userServers) {
@@ -73,11 +71,15 @@ router.post("/servers", async (req, res): Promise<any> => {
           member &&
           member.permissions.has(PermissionsBitField.Flags.ManageNicknames)
         ) {
+          const memberCount = server.members.cache.size;
+          console.log(memberCount);
+
           mutualServers.push({
             id: userServer.id,
             name: userServer.name,
             icon: userServer.icon,
             iconURL: getDiscordGuildIconURL(userServer.id, userServer.icon),
+            memberCount: memberCount,
           });
         }
       } catch (error) {
