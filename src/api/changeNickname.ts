@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.use(
   cors({
-    origin: process.env.DASHBOARD_URL || "https://arclify.vercel.app",
+    origin: process.env.DASHBOARD_URL || "http://localhost:3001",
     methods: ["POST", "GET"],
     credentials: true,
   })
