@@ -21,9 +21,9 @@ const supabase = createClient(SUPABASE_URL || "", SUPABASE_KEY || "");
 
 router.post("/changeNickname", async (req, res): Promise<any> => {
   try {
-    const { guild_id, user_id, nickname } = req.body;
+    const { guild_id, user_id, nickname, globalName } = req.body;
 
-    if (!guild_id || !user_id || !nickname) {
+    if (!guild_id || !user_id || !globalName) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -37,12 +37,13 @@ router.post("/changeNickname", async (req, res): Promise<any> => {
       return res.status(404).json({ error: "Member not found" });
     }
 
-    await member.setNickname(nickname);
+    await member.setNickname(nickname || globalName);
 
     await supabase.from("nicknames").upsert({
       guild_id,
       user_id,
       nickname,
+      globalName,
       updated_at: new Date().toISOString(),
     });
 
