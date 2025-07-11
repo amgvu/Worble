@@ -1,7 +1,5 @@
 import express from "express";
-import { createClient } from "@supabase/supabase-js";
 import { client } from "../index";
-import dotenv from "dotenv";
 import cors from "cors";
 
 const router = express.Router();
@@ -13,11 +11,6 @@ router.use(
     credentials: true,
   })
 );
-
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_KEY;
-
-const supabase = createClient(SUPABASE_URL || "", SUPABASE_KEY || "");
 
 router.post("/changeNickname", async (req, res): Promise<any> => {
   try {
@@ -38,14 +31,6 @@ router.post("/changeNickname", async (req, res): Promise<any> => {
     }
 
     await member.setNickname(nickname || globalName);
-
-    await supabase.from("nicknames").upsert({
-      guild_id,
-      user_id,
-      nickname,
-      globalName,
-      updated_at: new Date().toISOString(),
-    });
 
     return res.status(200).json({ message: "Nickname applied successfully" });
   } catch (error) {

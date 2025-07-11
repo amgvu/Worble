@@ -33,7 +33,6 @@ router.get("/roles/:guild_id", async (req, res): Promise<any> => {
     }));
 
     console.log("Fetched roles:", roleList);
-    
 
     return res.status(200).json(roleList);
   } catch (error) {
