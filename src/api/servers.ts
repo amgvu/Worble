@@ -1,88 +1,80 @@
 import express from "express";
 import { client } from "../index";
 import { PermissionsBitField } from "discord.js";
+import { getDiscordGuildIconURL } from "../utils/discord-icon";
+import { ServerData } from "../types/types";
 
 const router = express.Router();
 
-function getDiscordGuildIconURL(
-  guildId: string,
-  iconHash: string | null
-): string | null {
-  if (!iconHash) {
-    return null;
-  }
-  const fileExtension = iconHash.startsWith("a_") ? ".gif" : ".png";
-  return `https://cdn.discordapp.com/icons/${guildId}/${iconHash}${fileExtension}`;
-}
-
-router.post("/", async (req, res): Promise<any> => {
+router.post("/", async (req, res): Promise<void> => {
   try {
     const { accessToken, userId } = req.body;
+
     if (!accessToken || !userId) {
-      return res.status(400).json({ error: "Missing accessToken or userId" });
+      res.status(400).json({ error: "Missing accessToken or userId" });
+      return;
     }
 
-    const userServers = await new Promise<any[]>(async (resolve, reject) => {
-      try {
-        const userServersResponse = await fetch(
-          "https://discord.com/api/v10/users/@me/guilds",
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+    if (!/^\d{17,19}$/.test(userId)) {
+      res.status(400).json({ error: "Invalid userId format" });
+      return;
+    }
 
-        if (!userServersResponse.ok) {
-          const errorData = await userServersResponse.text();
-          console.error("Discord API error:", errorData);
-          reject(new Error("Failed to fetch user servers"));
-          return;
-        }
-
-        const data = await userServersResponse.json();
-        resolve(data);
-      } catch (error) {
-        reject(error);
+    const userServersResponse = await fetch(
+      "https://discord.com/api/v10/users/@me/guilds",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       }
-    });
+    );
 
+    if (!userServersResponse.ok) {
+      const status = userServersResponse.status;
+      if (status === 401) {
+        res.status(401).json({ error: "Invalid access token" });
+        return;
+      }
+      throw new Error(`Discord API error: ${status}`);
+    }
+
+    const userServers = await userServersResponse.json();
     const botServers = await client.guilds.fetch();
-    const mutualServers = [];
+    const mutualServers: ServerData[] = [];
 
-    for (const userServer of userServers) {
-      const botServer = botServers.get(userServer.id);
-      if (!botServer) continue;
+    await Promise.allSettled(
+      userServers.map(async (userServer: any) => {
+        const botServer = botServers.get(userServer.id);
+        if (!botServer) return;
 
-      try {
-        const server = await botServer.fetch();
-        const member = await server.members.fetch(userId);
+        try {
+          const server = await botServer.fetch();
+          const member = await server.members.fetch(userId);
 
-        if (
-          member &&
-          member.permissions.has(PermissionsBitField.Flags.ManageNicknames)
-        ) {
-          const memberCount = server.members.cache.size;
-          console.log(memberCount);
-
-          mutualServers.push({
-            id: userServer.id,
-            name: userServer.name,
-            icon: userServer.icon,
-            iconURL: getDiscordGuildIconURL(userServer.id, userServer.icon),
-            memberCount: memberCount,
-          });
+          if (
+            member?.permissions.has(PermissionsBitField.Flags.ManageNicknames)
+          ) {
+            mutualServers.push({
+              id: userServer.id,
+              name: userServer.name,
+              icon: userServer.icon,
+              iconURL: getDiscordGuildIconURL(userServer.id, userServer.icon),
+              memberCount: server.memberCount || server.members.cache.size,
+            });
+          }
+        } catch (error) {
+          console.error(
+            `Error processing server ${userServer.id}:`,
+            (error as Error).message
+          );
         }
-      } catch (error) {
-        console.error(`Error processing server ${userServer.id}:`, error);
-        continue;
-      }
-    }
+      })
+    );
 
-    return res.status(200).json(mutualServers);
+    res.status(200).json(mutualServers);
   } catch (error) {
     console.error("Error fetching servers:", error);
-    return res.status(500).json({ error: "Failed to fetch servers" });
+    res.status(500).json({ error: "Failed to fetch servers" });
   }
 });
 
