@@ -24,7 +24,6 @@ app.use(
     credentials: true,
   })
 );
-
 app.use("/", routes);
 
 const port = process.env.PORT || 3000;
@@ -43,16 +42,9 @@ for (const file of commandFiles) {
 }
 
 client.once("ready", () => {
-  console.log(`Logged in as ${client.user?.tag}!`);
-
-  client.user?.setStatus("invisible");
-
-  console.log(
-    `Bot status set to: ${client.user?.presence.activities[0]?.name}`
-  );
+  console.log(`Logged in as ${client.user?.tag}`);
+  client.user?.setStatus("online");
 });
-
-console.log(`Bot status set to: ${client.user?.presence.activities[1].name}`);
 
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
@@ -63,7 +55,7 @@ client.on("interactionCreate", async (interaction) => {
   try {
     await command.execute(interaction);
   } catch (error) {
-    console.error(error);
+    console.error(`${interaction.commandName} failed to execute:`, error);
     await interaction.reply({
       content: "There was an error while executing this command",
       ephemeral: true,
