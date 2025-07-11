@@ -5,7 +5,6 @@ import fs from "fs";
 import express from "express";
 import routes from "./api/index";
 import { ExtendedClient } from "./types/Client";
-import net from "net";
 import cors from "cors";
 
 dotenv.config();
