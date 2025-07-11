@@ -23,12 +23,6 @@ router.post("/", async (req, res): Promise<void> => {
       return;
     }
 
-    const botMember = guild.members.me;
-    if (!botMember) {
-      res.status(500).json({ error: "Bot is not in the guild" });
-      return;
-    }
-
     const member = await guild.members.fetch(user_id);
     if (!member) {
       res.status(404).json({ error: "Member not found" });
