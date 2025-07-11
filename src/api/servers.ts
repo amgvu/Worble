@@ -15,7 +15,7 @@ function getDiscordGuildIconURL(
   return `https://cdn.discordapp.com/icons/${guildId}/${iconHash}${fileExtension}`;
 }
 
-router.post("/servers", async (req, res): Promise<any> => {
+router.post("/", async (req, res): Promise<any> => {
   try {
     const { accessToken, userId } = req.body;
     if (!accessToken || !userId) {

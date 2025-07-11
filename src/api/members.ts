@@ -3,7 +3,7 @@ import { client } from "../index";
 
 const router = express.Router();
 
-router.get("/members/:guild_id", async (req, res): Promise<any> => {
+router.get("/:guild_id", async (req, res): Promise<any> => {
   try {
     const { guild_id } = req.params;
 
