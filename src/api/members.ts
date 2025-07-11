@@ -1,26 +1,34 @@
 import express from "express";
 import { client } from "../index";
+import { MemberData } from "../types/types";
 
 const router = express.Router();
 
-router.get("/:guild_id", async (req, res): Promise<any> => {
+router.get("/:guild_id", async (req, res): Promise<void> => {
   try {
     const { guild_id } = req.params;
 
+    if (!/^\d{17,19}$/.test(guild_id)) {
+      res.status(400).json({ error: "Invalid guild ID format" });
+      return;
+    }
+
     const guild = client.guilds.cache.get(guild_id);
     if (!guild) {
-      return res.status(404).json({ error: "Guild not found" });
+      res.status(404).json({ error: "Guild not found" });
+      return;
     }
 
     const botMember = guild.members.me;
     if (!botMember) {
-      return res.status(500).json({ error: "Bot is not in the guild" });
+      res.status(500).json({ error: "Bot is not in the guild" });
+      return;
     }
 
     const botHighestRole = botMember.roles.highest;
     const members = await guild.members.fetch();
 
-    const memberList = members
+    const memberList: MemberData[] = members
       .filter(
         (member) =>
           member.user.id !== guild.ownerId &&
@@ -40,15 +48,15 @@ router.get("/:guild_id", async (req, res): Promise<any> => {
             role_id: role.id,
             name: role.name,
             position: role.position,
-            color: role.color.toString(16),
+            color: role.color.toString(16).padStart(6, "0"),
           }))
           .sort((a, b) => b.position - a.position),
       }));
 
-    return res.status(200).json(memberList);
+    res.status(200).json(memberList);
   } catch (error) {
     console.error("Error fetching members:", error);
-    return res.status(500).json({ error: "Failed to fetch members" });
+    res.status(500).json({ error: "Failed to fetch members" });
   }
 });
 
