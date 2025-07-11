@@ -1,16 +1,7 @@
 import express from "express";
 import { client } from "../index";
-import cors from "cors";
 
 const router = express.Router();
-
-router.use(
-  cors({
-    origin: process.env.DASHBOARD_URL || "http://localhost:3001",
-    methods: ["POST", "GET"],
-    credentials: true,
-  })
-);
 
 router.get("/members/:guild_id", async (req, res): Promise<any> => {
   try {

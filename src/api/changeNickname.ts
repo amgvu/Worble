@@ -1,18 +1,9 @@
 import express from "express";
 import { client } from "../index";
-import cors from "cors";
 
 const router = express.Router();
 
-router.use(
-  cors({
-    origin: process.env.DASHBOARD_URL || "http://localhost:3001",
-    methods: ["POST", "GET"],
-    credentials: true,
-  })
-);
-
-router.post("/changeNickname", async (req, res): Promise<any> => {
+router.post("/", async (req, res): Promise<any> => {
   try {
     const { guild_id, user_id, nickname, globalName } = req.body;
 

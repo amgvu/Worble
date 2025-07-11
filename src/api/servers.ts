@@ -1,17 +1,8 @@
 import express from "express";
 import { client } from "../index";
-import cors from "cors";
 import { PermissionsBitField } from "discord.js";
 
 const router = express.Router();
-
-router.use(
-  cors({
-    origin: process.env.DASHBOARD_URL || "http://localhost:3001",
-    methods: ["POST", "GET"],
-    credentials: true,
-  })
-);
 
 function getDiscordGuildIconURL(
   guildId: string,
